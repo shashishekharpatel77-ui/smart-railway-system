@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking History | Smart Railway</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #1e293b;
+            background: #f3f6fb;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px 17px;
+            color: #fff;
+            background: #17365d;
+            border: none;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(23, 54, 93, .18);
+        }
+
+        .menu-button:hover {
+            background: #24558a;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            background: rgba(15, 23, 42, .55);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+
+        .menu-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1003;
+            width: 290px;
+            max-width: 85%;
+            height: 100%;
+            height: 100dvh;
+            padding: 25px 20px;
+            overflow-y: auto;
+            background: linear-gradient(160deg, #17365d, #104a78);
+            box-shadow: 5px 0 25px rgba(15, 23, 42, .2);
+            transform: translateX(-105%);
+            transition: transform .3s ease;
+        }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+        }
+
+        .menu-brand {
+            color: #fff;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .close-button {
+            width: 40px;
+            height: 40px;
+            color: #fff;
+            background: transparent;
+            border: none;
+            border-radius: 7px;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, .14);
+        }
+
+        .menu-caption {
+            margin: 25px 0 12px;
+            color: #cbdcec;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .menu-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 12px;
+            color: #f8fafc;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: background .2s ease;
+        }
+
+        .menu-links a:hover,
+        .menu-links a.active {
+            background: rgba(255, 255, 255, .15);
+        }
+
+        .menu-icon {
+            width: 25px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1350px;
+            margin: auto;
+            padding: 88px 0 40px;
+        }
+
+        .page-header {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+            padding: 34px;
+            color: #fff;
+            background: linear-gradient(120deg, #17365d, #24558a);
+            border-radius: 17px;
+            box-shadow: 0 10px 28px rgba(23, 54, 93, .12);
+        }
+
+        .page-header::after {
+            content: "🚆";
+            position: absolute;
+            right: 35px;
+            bottom: 0;
+            font-size: 95px;
+            opacity: .13;
+            pointer-events: none;
+        }
+
+        .header-label {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 11px;
+            color: #e0edff;
+            background: rgba(255, 255, 255, .13);
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .page-header h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0 0 10px;
+            color: #fff;
+            font-size: clamp(27px, 4vw, 36px);
+        }
+
+        .page-header p {
+            position: relative;
+            z-index: 1;
+            max-width: 570px;
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .panel {
+            margin-top: 22px;
+            padding: 25px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(15, 23, 42, .035);
+        }
+
+        .search-title {
+            margin: 0 0 9px;
+            color: #17365d;
+            font-size: 22px;
+        }
+
+        .search-description {
+            margin: 0 0 22px;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 13px;
+        }
+
+        .search-form input {
+            width: 100%;
+            min-width: 0;
+            min-height: 46px;
+            padding: 12px 14px;
+            color: #1e293b;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: #3674b5;
+            box-shadow: 0 0 0 3px rgba(54, 116, 181, .12);
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .search-button {
+            min-height: 46px;
+            padding: 12px 20px;
+            color: #fff;
+            background: #17365d;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            transition: background .2s ease;
+        }
+
+        .search-button:hover {
+            background: #24558a;
+        }
+
+        .error {
+            margin-top: 18px;
+            padding: 14px 16px;
+            color: #991b1b;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .history-heading {
+            margin: 0;
+            color: #17365d;
+            font-size: 22px;
+            overflow-wrap: anywhere;
+        }
+
+        .history-subtitle {
+            margin: 8px 0 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1120px;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead {
+            color: #fff;
+            background: #17365d;
+        }
+
+        th,
+        td {
+            padding: 14px 13px;
+            border-bottom: 1px solid #e8edf4;
+            text-align: center;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        th {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        td {
+            color: #475569;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tbody tr:hover {
+            background: #eff6ff;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .confirmed {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .cancelled {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .waiting {
+            color: #92400e;
+            background: #fef3c7;
+        }
+
+        .cancel-button {
+            min-height: 36px;
+            padding: 9px 12px;
+            color: #fff;
+            background: #dc2626;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            transition: background .2s ease;
+        }
+
+        .cancel-button:hover {
+            background: #b91c1c;
+        }
+
+        .already-cancelled {
+            color: #991b1b;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .action-form {
+            margin: 0;
+        }
+
+        .empty {
+            margin-top: 18px;
+            padding: 35px 20px;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .empty-icon {
+            margin-bottom: 12px;
+            font-size: 40px;
+        }
+
+        .empty h3 {
+            margin: 0 0 8px;
+            color: #17365d;
+            font-size: 20px;
+        }
+
+        .empty p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .bottom-navigation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 43px;
+            padding: 11px 17px;
+            color: #17365d;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 800;
+            transition: background .2s ease;
+        }
+
+        .back-link:hover {
+            background: #eaf1f9;
+        }
+
+        .page-footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 650px) {
+            .container {
+                width: 94%;
+                padding-top: 80px;
+            }
+
+            .page-header {
+                padding: 25px 20px;
+            }
+
+            .page-header::after {
+                right: 12px;
+                font-size: 65px;
+            }
+
+            .panel {
+                padding: 17px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .search-button {
+                width: 100%;
+            }
+
+            .bottom-navigation {
+                flex-direction: column;
+            }
+
+            .back-link {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<button type="button"
+        class="menu-button"
+        id="menuButton"
+        aria-label="Open navigation menu"
+        aria-controls="sideMenu"
+        aria-expanded="false">
+    <span aria-hidden="true">☰</span>
+    <span>Menu</span>
+</button>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<aside class="side-menu"
+       id="sideMenu"
+       aria-label="Main navigation"
+       aria-hidden="true"
+       inert>
+
+    <div class="menu-header">
+        <div class="menu-brand">🚆 Smart Railway</div>
+
+        <button type="button"
+                class="close-button"
+                id="closeMenu"
+                aria-label="Close navigation menu">
+            &times;
+        </button>
+    </div>
+
+    <p class="menu-caption">Navigation</p>
+
+    <nav class="menu-links">
+        <a th:href="@{/}">
+            <span class="menu-icon" aria-hidden="true">⌂</span>
+            <span>Home</span>
+        </a>
+
+        <a th:href="@{/}">
+            <span class="menu-icon" aria-hidden="true">🚆</span>
+            <span>Train Search</span>
+        </a>
+
+        <a th:href="@{/booking-history}" class="active">
+            <span class="menu-icon" aria-hidden="true">🎟️</span>
+            <span>Booking History</span>
+        </a>
+
+        <a th:href="@{/routes}">
+            <span class="menu-icon" aria-hidden="true">🗺️</span>
+            <span>Route Finder (BFS &amp; Dijkstra)</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="container">
+
+    <header class="page-header">
+        <span class="header-label">SMART RAILWAY RESERVATION SYSTEM</span>
+        <h1>🎟️ Booking History</h1>
+        <p>
+            View your booking details, check ticket status and manage
+            your confirmed reservations in one place.
+        </p>
+    </header>
+
+    <section class="panel">
+        <h2 class="search-title">Find Your Bookings</h2>
+
+        <p class="search-description">
+            Enter the username used while booking to view the associated tickets.
+        </p>
+
+        <form class="search-form"
+              action="/booking-history"
+              method="get">
+
+            <input
+                type="text"
+                name="username"
+                placeholder="Enter your username"
+                th:value="${username}"
+                aria-label="Username"
+                autocomplete="username"
+                required>
+
+            <button type="submit" class="search-button">
+                View Bookings →
+            </button>
+        </form>
+
+        <p class="error"
+           th:if="${error}"
+           th:text="${error}">
+        </p>
+    </section>
+
+    <section class="panel" th:if="${username != null}">
+
+        <h2 class="history-heading"
+            th:text="'Booking history for: ' + ${username}">
+        </h2>
+
+        <p class="history-subtitle">
+            Review your tickets and their current reservation status.
+        </p>
+
+        <div th:if="${#lists.isEmpty(bookings)}" class="empty">
+            <div class="empty-icon">🎫</div>
+            <h3>No Bookings Found</h3>
+            <p>No bookings were found for this username.</p>
+            <p>Please check your username and try again.</p>
+        </div>
+
+        <div class="table-wrapper"
+             th:if="${not #lists.isEmpty(bookings)}">
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Passenger</th>
+                    <th>Train Number</th>
+                    <th>Train Name</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Travel Date</th>
+                    <th>Class</th>
+                    <th>Seat ID</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="booking : ${bookings}">
+
+                    <td th:text="${booking.bookingId}"></td>
+                    <td th:text="${booking.passengerName}"></td>
+                    <td th:text="${booking.trainNumber}"></td>
+                    <td th:text="${booking.trainName}"></td>
+                    <td th:text="${booking.sourceStationName}"></td>
+                    <td th:text="${booking.destinationStationName}"></td>
+                    <td th:text="${booking.travelDate}"></td>
+                    <td th:text="${booking.classType}"></td>
+
+                    <td th:text="${booking.seatId != null
+                                  ? booking.seatId : '—'}"></td>
+
+                    <td>
+                        <span
+                            class="status"
+                            th:text="${booking.bookingStatus}"
+                            th:classappend="${booking.bookingStatus == 'CONFIRMED'
+                                ? ' confirmed'
+                                : (booking.bookingStatus == 'CANCELLED'
+                                    ? ' cancelled' : ' waiting')}">
+                        </span>
+                    </td>
+
+                    <td>
+                        <form
+                            class="action-form"
+                            th:if="${booking.bookingStatus == 'CONFIRMED'}"
+                            action="/cancel-ticket"
+                            method="post"
+                            onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
+
+                            <input
+                                type="hidden"
+                                name="bookingId"
+                                th:value="${booking.bookingId}">
+
+                            <button type="submit" class="cancel-button">
+                                Cancel Ticket
+                            </button>
+                        </form>
+
+                        <span
+                            class="already-cancelled"
+                            th:if="${booking.bookingStatus == 'CANCELLED'}">
+                            Already Cancelled
+                        </span>
+
+                        <span
+                            th:if="${booking.bookingStatus != 'CONFIRMED'
+                                    and booking.bookingStatus != 'CANCELLED'}">
+                            —
+                        </span>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="bottom-navigation">
+        <a class="back-link" th:href="@{/}">
+            ← Back to Home
+        </a>
+
+        <a class="back-link" th:href="@{/routes}">
+            🗺️ Explore Train Routes
+        </a>
+    </div>
+
+    <footer class="page-footer">
+        Smart Railway Reservation System · Booking &amp; Ticket Management
+    </footer>
+
+</main>
+
+<script>
+    const menuButton = document.getElementById("menuButton");
+    const sideMenu = document.getElementById("sideMenu");
+    const menuOverlay = document.getElementById("menuOverlay");
+    const closeMenuButton = document.getElementById("closeMenu");
+
+    function openMenu() {
+        sideMenu.classList.add("open");
+        menuOverlay.classList.add("open");
+        sideMenu.removeAttribute("inert");
+        sideMenu.setAttribute("aria-hidden", "false");
+        document.body.classList.add("menu-open");
+        menuButton.setAttribute("aria-expanded", "true");
+        closeMenuButton.focus();
+    }
+
+    function closeSideMenu() {
+        sideMenu.classList.remove("open");
+        menuOverlay.classList.remove("open");
+        sideMenu.setAttribute("inert", "");
+        sideMenu.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("menu-open");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.focus();
+    }
+
+    menuButton.addEventListener("click", openMenu);
+    closeMenuButton.addEventListener("click", closeSideMenu);
+    menuOverlay.addEventListener("click", closeSideMenu);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && sideMenu.classList.contains("open")) {
+            closeSideMenu();
+        }
+    });
+</script>
+
+</body>
+</html>

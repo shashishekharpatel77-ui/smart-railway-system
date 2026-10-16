@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Finder | Smart Railway</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fb;
+            color: #1e293b;
+        }
+
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 1001;
+            border: none;
+            border-radius: 9px;
+            padding: 11px 16px;
+            background: #17365d;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px #0002;
+        }
+
+        .menu-button:hover {
+            background: #24558b;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .menu-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 285px;
+            max-width: 85vw;
+            height: 100vh;
+            padding: 22px 16px;
+            background: linear-gradient(160deg, #17365d, #104a78);
+            color: white;
+            z-index: 1003;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 8px 0 25px #0002;
+        }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #ffffff30;
+        }
+
+        .menu-brand {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .close-button {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .menu-caption {
+            color: #cbd5e1;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 24px 10px 12px;
+        }
+
+        .menu-links a {
+            display: block;
+            padding: 13px 12px;
+            margin: 5px 0;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .menu-links a:hover,
+        .menu-links a.active {
+            background: #ffffff20;
+        }
+
+        .menu-icon {
+            display: inline-block;
+            width: 32px;
+        }
+
+        .menu-button:focus-visible,
+        .close-button:focus-visible,
+        .menu-links a:focus-visible,
+        select:focus-visible,
+        .search-button:focus-visible,
+        .back-link:focus-visible {
+            outline: 3px solid #60a5fa;
+            outline-offset: 3px;
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 90px 22px 45px;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #eaf2ff;
+            color: #24558b;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .page-heading h1 {
+            color: #17365d;
+            font-size: 30px;
+            margin: 0 0 8px;
+        }
+
+        .page-heading p {
+            color: #64748b;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 22px;
+            box-shadow: 0 5px 22px #17365d0c;
+            border: 1px solid #e6edf5;
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            color: #17365d;
+            font-size: 21px;
+        }
+
+        .card-description {
+            margin: 0 0 22px;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            font-size: 15px;
+            color: #1e293b;
+        }
+
+        select:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
+        .search-button {
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background: #17365d;
+            color: white;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .search-button:hover {
+            background: #24558b;
+            transform: translateY(-1px);
+        }
+
+        .route-card {
+            border-left: 5px solid #2563eb;
+        }
+
+        .route-card.dijkstra {
+            border-left-color: #0f9b78;
+        }
+
+        .route-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .route-heading h2 {
+            margin: 0;
+        }
+
+        .route-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #eaf2ff;
+            color: #24558b;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .dijkstra .route-badge {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .route-subtitle {
+            color: #64748b;
+            margin: 0 0 18px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .route-path {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 17px;
+            line-height: 1.9;
+            overflow-wrap: anywhere;
+            color: #17365d;
+            font-weight: 600;
+        }
+
+        .route-card.dijkstra .route-path {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .empty-message {
+            background: #fff7ed;
+            color: #9a3412;
+            border-radius: 8px;
+            padding: 14px;
+            line-height: 1.6;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 5px;
+            color: #17365d;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 22px 10px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                padding: 85px 14px 30px;
+            }
+
+            .page-heading h1 {
+                font-size: 25px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .route-heading {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<button type="button"
+        class="menu-button"
+        id="menuButton"
+        aria-controls="sideMenu"
+        aria-expanded="false">
+    ☰ Menu
+</button>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<aside class="side-menu"
+       id="sideMenu"
+       aria-label="Main navigation"
+       aria-hidden="true"
+       inert>
+
+    <div class="menu-header">
+        <div class="menu-brand">🚆 Smart Railway</div>
+
+        <button type="button"
+                class="close-button"
+                id="closeMenu"
+                aria-label="Close menu">
+            &times;
+        </button>
+    </div>
+
+    <p class="menu-caption">Navigation</p>
+
+    <nav class="menu-links">
+        <a th:href="@{/}">
+            <span class="menu-icon">⌂</span> Home
+        </a>
+
+        <a th:href="@{/}">
+            <span class="menu-icon">🚆</span> Train Search
+        </a>
+
+        <a th:href="@{/booking-history}">
+            <span class="menu-icon">🎟️</span> Booking History
+        </a>
+
+        <a th:href="@{/routes(sourceId=1,destinationId=2)}"
+           class="active"
+           aria-current="page">
+            <span class="menu-icon">🗺️</span> Route Finder
+        </a>
+    </nav>
+</aside>
+
+<main class="page">
+
+    <header class="page-heading">
+        <span class="eyebrow">Smart Route Planning</span>
+        <h1>🗺️ Railway Route Finder</h1>
+        <p>
+            Explore railway connections and compare routes using
+            BFS and Dijkstra algorithms.
+        </p>
+    </header>
+
+    <section class="card">
+
+        <h2>Select Your Route</h2>
+
+        <p class="card-description">
+            Choose your starting and destination stations to find available routes.
+        </p>
+
+        <form th:action="@{/routes}" method="get">
+
+            <div class="form-grid">
+
+                <div>
+                    <label for="sourceId">Source Station</label>
+
+                    <select id="sourceId" name="sourceId" required>
+                        <option value="">Select source station</option>
+
+                        <option th:each="station : ${stations}"
+                                th:value="${station.stationId}"
+                                th:text="${station.stationName}"
+                                th:selected="${station.stationId == sourceId}">
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="destinationId">Destination Station</label>
+
+                    <select id="destinationId"
+                            name="destinationId"
+                            required>
+                        <option value="">Select destination station</option>
+
+                        <option th:each="station : ${stations}"
+                                th:value="${station.stationId}"
+                                th:text="${station.stationName}"
+                                th:selected="${station.stationId == destinationId}">
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+
+            <button type="submit" class="search-button">
+                Find Routes →
+            </button>
+
+        </form>
+    </section>
+
+    <section class="card route-card">
+
+        <div class="route-heading">
+            <h2>🔵 BFS Route</h2>
+            <span class="route-badge">FEWEST STOPS</span>
+        </div>
+
+        <p class="route-subtitle">
+            Breadth-First Search finds a route with the fewest
+            station-to-station connections.
+        </p>
+
+        <p class="empty-message"
+           th:if="${#lists.isEmpty(bfsRoute)}">
+            No BFS route found between these stations.
+        </p>
+
+        <div class="route-path"
+             th:unless="${#lists.isEmpty(bfsRoute)}"
+             th:text="${#strings.listJoin(bfsRoute, ' → ')}">
+        </div>
+
+    </section>
+
+    <section class="card route-card dijkstra">
+
+        <div class="route-heading">
+            <h2>🟢 Dijkstra Route</h2>
+            <span class="route-badge">LOWEST COST</span>
+        </div>
+
+        <p class="route-subtitle">
+            Dijkstra's algorithm finds the route with the lowest
+            estimated travel cost according to your route data.
+        </p>
+
+        <p class="empty-message"
+           th:if="${#lists.isEmpty(dijkstraRoute)}">
+            No Dijkstra route found between these stations.
+        </p>
+
+        <div class="route-path"
+             th:unless="${#lists.isEmpty(dijkstraRoute)}"
+             th:text="${#strings.listJoin(dijkstraRoute, ' → ')}">
+        </div>
+
+    </section>
+
+    <a class="back-link" th:href="@{/}">
+        ← Back to Train Search
+    </a>
+
+    <footer class="footer">
+        Smart Railway Reservation &amp; Route Management System
+    </footer>
+
+</main>
+
+<script>
+    const menuButton = document.getElementById("menuButton");
+    const sideMenu = document.getElementById("sideMenu");
+    const menuOverlay = document.getElementById("menuOverlay");
+    const closeMenuButton = document.getElementById("closeMenu");
+
+    function openMenu() {
+        sideMenu.classList.add("open");
+        menuOverlay.classList.add("open");
+
+        sideMenu.removeAttribute("inert");
+        sideMenu.setAttribute("aria-hidden", "false");
+
+        document.body.classList.add("menu-open");
+        menuButton.setAttribute("aria-expanded", "true");
+
+        closeMenuButton.focus();
+    }
+
+    function closeSideMenu() {
+        sideMenu.classList.remove("open");
+        menuOverlay.classList.remove("open");
+
+        sideMenu.setAttribute("inert", "");
+        sideMenu.setAttribute("aria-hidden", "true");
+
+        document.body.classList.remove("menu-open");
+        menuButton.setAttribute("aria-expanded", "false");
+
+        menuButton.focus();
+    }
+
+    menuButton.addEventListener("click", openMenu);
+    closeMenuButton.addEventListener("click", closeSideMenu);
+    menuOverlay.addEventListener("click", closeSideMenu);
+
+    document.addEventListener("keydown", function (event) {
+        if (
+            event.key === "Escape" &&
+            sideMenu.classList.contains("open")
+        ) {
+            closeSideMenu();
+        }
+    });
+</script>
+
+</body>
+</html>

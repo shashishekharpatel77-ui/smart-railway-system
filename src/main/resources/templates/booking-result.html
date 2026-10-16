@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Result | Smart Railway</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fb;
+            color: #1e293b;
+        }
+
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 1001;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 9px;
+            background: #17365d;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px #0002;
+        }
+
+        .menu-button:hover {
+            background: #24558b;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            background: rgba(15, 23, 42, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .menu-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1003;
+            width: 285px;
+            max-width: 85vw;
+            height: 100vh;
+            padding: 22px 16px;
+            background: linear-gradient(160deg, #17365d, #104a78);
+            color: white;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 8px 0 25px #0002;
+        }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #ffffff30;
+        }
+
+        .menu-brand {
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .close-button {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .menu-caption {
+            margin: 24px 10px 12px;
+            color: #cbd5e1;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .menu-links a {
+            display: block;
+            margin: 5px 0;
+            padding: 13px 12px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .menu-links a:hover {
+            background: #ffffff20;
+        }
+
+        .menu-icon {
+            display: inline-block;
+            width: 32px;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 90px 20px 35px;
+        }
+
+        .result-card {
+            width: 100%;
+            max-width: 560px;
+            padding: 38px;
+            text-align: center;
+            background: white;
+            border: 1px solid #e6edf5;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px rgba(23, 54, 93, 0.09);
+            animation: appear 0.4s ease;
+        }
+
+        .top-label {
+            display: inline-block;
+            margin-bottom: 22px;
+            padding: 7px 13px;
+            border-radius: 20px;
+            background: #eaf2ff;
+            color: #24558b;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .result-icon {
+            width: 76px;
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #eaf2ff;
+            font-size: 35px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            color: #17365d;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            margin: 0 0 25px;
+            color: #64748b;
+            line-height: 1.7;
+        }
+
+        .message {
+            padding: 18px;
+            margin: 20px 0 25px;
+            border: 1px solid #dbeafe;
+            border-radius: 11px;
+            background: #eff6ff;
+            color: #1e3a5f;
+            line-height: 1.8;
+            overflow-wrap: anywhere;
+            white-space: pre-line;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 12px 20px;
+            border: 1px solid #17365d;
+            border-radius: 8px;
+            background: #17365d;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .action-button:hover {
+            background: #24558b;
+            border-color: #24558b;
+            transform: translateY(-1px);
+        }
+
+        .secondary-button {
+            background: white;
+            color: #17365d;
+        }
+
+        .secondary-button:hover {
+            color: white;
+        }
+
+        .history-link {
+            display: inline-block;
+            margin-top: 22px;
+            color: #24558b;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .history-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid #e6edf5;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        button:focus-visible,
+        a:focus-visible {
+            outline: 3px solid #60a5fa;
+            outline-offset: 3px;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .result-card {
+                padding: 28px 18px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .action-button {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <button type="button"
+            class="menu-button"
+            id="menuButton"
+            aria-controls="sideMenu"
+            aria-expanded="false">
+        ☰ Menu
+    </button>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <aside class="side-menu"
+           id="sideMenu"
+           aria-label="Main navigation"
+           aria-hidden="true"
+           inert>
+
+        <div class="menu-header">
+            <div class="menu-brand">🚆 Smart Railway</div>
+
+            <button type="button"
+                    class="close-button"
+                    id="closeMenu"
+                    aria-label="Close menu">
+                &times;
+            </button>
+        </div>
+
+        <p class="menu-caption">Navigation</p>
+
+        <nav class="menu-links">
+            <a th:href="@{/}">
+                <span class="menu-icon">⌂</span> Home
+            </a>
+
+            <a th:href="@{/}">
+                <span class="menu-icon">🚆</span> Train Search
+            </a>
+
+            <a th:href="@{/booking-history}">
+                <span class="menu-icon">🎟️</span> Booking History
+            </a>
+
+            <a th:href="@{/routes}">
+                <span class="menu-icon">🗺️</span> Route Finder
+            </a>
+        </nav>
+    </aside>
+
+    <main class="page">
+        <section class="result-card">
+
+            <div class="top-label">Smart Railway System</div>
+
+            <div class="result-icon" aria-hidden="true">
+                🚆
+            </div>
+
+            <h1>Transaction Result</h1>
+
+            <p class="subtitle">
+                Your booking or cancellation request has been processed.
+            </p>
+
+            <div class="message"
+                 role="status"
+                 th:text="${message}">
+                Your booking or cancellation result will appear here.
+            </div>
+
+            <div class="button-group">
+                <a th:href="@{/}" class="action-button">
+                    🏠 Back to Home
+                </a>
+
+                <a th:href="@{/}" class="action-button secondary-button">
+                    🔍 Search Trains
+                </a>
+            </div>
+
+            <a th:href="@{/booking-history}" class="history-link">
+                View Booking History →
+            </a>
+
+            <div class="footer">
+                Smart Railway Reservation &amp; Route Management System
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        const menuButton = document.getElementById("menuButton");
+        const sideMenu = document.getElementById("sideMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
+        const closeMenuButton = document.getElementById("closeMenu");
+
+        function openMenu() {
+            sideMenu.classList.add("open");
+            menuOverlay.classList.add("open");
+
+            sideMenu.removeAttribute("inert");
+            sideMenu.setAttribute("aria-hidden", "false");
+
+            document.body.classList.add("menu-open");
+            menuButton.setAttribute("aria-expanded", "true");
+
+            closeMenuButton.focus();
+        }
+
+        function closeSideMenu() {
+            sideMenu.classList.remove("open");
+            menuOverlay.classList.remove("open");
+
+            sideMenu.setAttribute("inert", "");
+            sideMenu.setAttribute("aria-hidden", "true");
+
+            document.body.classList.remove("menu-open");
+            menuButton.setAttribute("aria-expanded", "false");
+
+            menuButton.focus();
+        }
+
+        menuButton.addEventListener("click", openMenu);
+        closeMenuButton.addEventListener("click", closeSideMenu);
+        menuOverlay.addEventListener("click", closeSideMenu);
+
+        document.addEventListener("keydown", function (event) {
+            if (
+                event.key === "Escape" &&
+                sideMenu.classList.contains("open")
+            ) {
+                closeSideMenu();
+            }
+        });
+    </script>
+
+</body>
+</html>

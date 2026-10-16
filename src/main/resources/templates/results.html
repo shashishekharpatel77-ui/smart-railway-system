@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Search Results | Smart Railway</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #1e293b;
+            background: #f3f6fb;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1200px;
+            margin: auto;
+            padding: 88px 0 45px;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px 17px;
+            color: #fff;
+            background: #17365d;
+            border: none;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(23, 54, 93, .18);
+            transition: background .2s ease;
+        }
+
+        .menu-button:hover {
+            background: #24558a;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1002;
+            background: rgba(15, 23, 42, .55);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+
+        .menu-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-menu {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 1003;
+            width: 290px;
+            max-width: 85%;
+            height: 100%;
+            height: 100dvh;
+            padding: 25px 20px;
+            overflow-y: auto;
+            background: linear-gradient(160deg, #17365d, #104a78);
+            box-shadow: 5px 0 25px rgba(15, 23, 42, .2);
+            transform: translateX(-105%);
+            transition: transform .3s ease;
+        }
+
+        .side-menu.open {
+            transform: translateX(0);
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+        }
+
+        .menu-brand {
+            color: #fff;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .close-button {
+            width: 40px;
+            height: 40px;
+            color: #fff;
+            background: transparent;
+            border: none;
+            border-radius: 7px;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, .14);
+        }
+
+        .menu-caption {
+            margin: 25px 0 12px;
+            color: #cbdcec;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .menu-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 12px;
+            color: #f8fafc;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: background .2s ease;
+        }
+
+        .menu-links a:hover,
+        .menu-links a.active {
+            background: rgba(255, 255, 255, .15);
+        }
+
+        .menu-icon {
+            width: 25px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        /* Page heading */
+
+        .section-label {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 7px 12px;
+            color: #24558a;
+            background: #e4eef9;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .7px;
+        }
+
+        .page-heading {
+            margin-bottom: 25px;
+        }
+
+        .page-heading h1 {
+            margin: 0 0 10px;
+            color: #17365d;
+            font-size: clamp(28px, 4vw, 38px);
+            letter-spacing: -.7px;
+        }
+
+        .page-description {
+            max-width: 650px;
+            margin: 0;
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Sorting */
+
+        .sort-panel {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 22px 0;
+            padding: 17px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+        }
+
+        .sort-label {
+            margin-right: 5px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .sort-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 9px 16px;
+            color: #17365d;
+            background: #f0f5fb;
+            border: 1px solid #d9e5f3;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background .2s ease, color .2s ease;
+        }
+
+        .sort-link:hover {
+            color: #fff;
+            background: #24558a;
+        }
+
+        /* Messages */
+
+        .error {
+            margin: 20px 0;
+            padding: 15px 17px;
+            color: #991b1b;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .empty-message {
+            margin: 22px 0;
+            padding: 35px 20px;
+            background: #fff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            margin-bottom: 12px;
+            font-size: 38px;
+        }
+
+        .empty-message h3 {
+            margin: 0 0 10px;
+            color: #17365d;
+        }
+
+        .empty-message p {
+            margin: 0;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        /* Train table */
+
+        .results-panel {
+            margin-top: 24px;
+            padding: 23px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(15, 23, 42, .035);
+        }
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 19px;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+            color: #17365d;
+            font-size: 21px;
+        }
+
+        .panel-badge {
+            padding: 7px 11px;
+            color: #166534;
+            background: #dcfce7;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead {
+            color: #fff;
+            background: #17365d;
+        }
+
+        th,
+        td {
+            padding: 15px 14px;
+            text-align: left;
+            border-bottom: 1px solid #e8edf4;
+            white-space: nowrap;
+        }
+
+        th {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        td {
+            color: #475569;
+            font-size: 13px;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #f5f9ff;
+        }
+
+        /* Booking section */
+
+        .booking-section {
+            margin-top: 38px;
+        }
+
+        .booking-section h2 {
+            margin: 0 0 10px;
+            color: #17365d;
+            font-size: 25px;
+        }
+
+        .booking-intro {
+            margin: 0 0 22px;
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .train-card {
+            margin: 20px 0;
+            padding: 23px;
+            background: #fff;
+            border: 1px solid #dce5f0;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(15, 23, 42, .035);
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        .train-card:hover {
+            border-color: #b8cce4;
+            box-shadow: 0 9px 25px rgba(15, 23, 42, .07);
+        }
+
+        .train-card h3 {
+            margin: 0 0 18px;
+            color: #17365d;
+            font-size: 19px;
+            line-height: 1.5;
+        }
+
+        .train-details {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 13px;
+            margin-bottom: 17px;
+        }
+
+        .detail-box {
+            padding: 13px;
+            background: #f6f9fd;
+            border: 1px solid #e6edf6;
+            border-radius: 9px;
+        }
+
+        .detail-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .detail-value {
+            color: #17365d;
+            font-size: 15px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .seat-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            padding: 8px 12px;
+            color: #166534;
+            background: #dcfce7;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        /* Booking form */
+
+        .booking-form {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+            margin-top: 22px;
+            padding: 21px;
+            background: #f7faff;
+            border: 1px solid #e0e9f5;
+            border-radius: 11px;
+        }
+
+        .booking-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .booking-form input,
+        .booking-form select {
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            color: #1e293b;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .booking-form input:focus,
+        .booking-form select:focus {
+            outline: none;
+            border-color: #3674b5;
+            box-shadow: 0 0 0 3px rgba(54, 116, 181, .12);
+        }
+
+        .booking-form button {
+            width: 100%;
+            min-height: 44px;
+            margin-top: 26px;
+            padding: 11px 15px;
+            color: #fff;
+            background: #17365d;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background .2s ease;
+        }
+
+        .booking-form button:hover {
+            background: #24558a;
+        }
+
+        /* Bottom links */
+
+        .bottom-navigation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 43px;
+            padding: 11px 17px;
+            color: #17365d;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 800;
+            transition: background .2s ease;
+        }
+
+        .back-link:hover {
+            background: #eaf1f9;
+        }
+
+        .page-footer {
+            margin-top: 42px;
+            padding-top: 20px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 760px) {
+            .train-details {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .booking-form button {
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                width: 94%;
+                padding-top: 80px;
+            }
+
+            .menu-button {
+                top: 12px;
+                left: 12px;
+            }
+
+            .results-panel,
+            .train-card {
+                padding: 15px;
+            }
+
+            .sort-panel {
+                padding: 13px;
+            }
+
+            .sort-label {
+                width: 100%;
+            }
+
+            .sort-link {
+                flex: 1;
+                padding: 9px 10px;
+            }
+
+            .booking-form {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+
+            .bottom-navigation {
+                flex-direction: column;
+            }
+
+            .back-link {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<button type="button"
+        class="menu-button"
+        id="menuButton"
+        aria-label="Open navigation menu"
+        aria-controls="sideMenu"
+        aria-expanded="false">
+    <span aria-hidden="true">☰</span>
+    <span>Menu</span>
+</button>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<aside class="side-menu"
+       id="sideMenu"
+       aria-label="Main navigation"
+       aria-hidden="true"
+       inert>
+
+    <div class="menu-header">
+        <div class="menu-brand">🚆 Smart Railway</div>
+
+        <button type="button"
+                class="close-button"
+                id="closeMenu"
+                aria-label="Close navigation menu">
+            &times;
+        </button>
+    </div>
+
+    <p class="menu-caption">Navigation</p>
+
+    <nav class="menu-links">
+        <a th:href="@{/}">
+            <span class="menu-icon" aria-hidden="true">⌂</span>
+            <span>Home</span>
+        </a>
+
+        <a th:href="@{/}" class="active">
+            <span class="menu-icon" aria-hidden="true">🚆</span>
+            <span>Train Search</span>
+        </a>
+
+        <a th:href="@{/booking-history}">
+            <span class="menu-icon" aria-hidden="true">🎟️</span>
+            <span>Booking History</span>
+        </a>
+
+        <a th:href="@{/routes}">
+            <span class="menu-icon" aria-hidden="true">🗺️</span>
+            <span>Route Finder (BFS &amp; Dijkstra)</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="container">
+
+    <header class="page-heading">
+        <span class="section-label">SMART RAILWAY RESERVATION SYSTEM</span>
+
+        <h1>Available Trains 🚆</h1>
+
+        <p class="page-description">
+            Compare train timings, fares and available seats.
+            Choose a suitable train and enter passenger details to book your journey.
+        </p>
+    </header>
+
+    <p th:if="${error}"
+       class="error"
+       th:text="${error}">
+    </p>
+
+    <div class="sort-panel">
+        <span class="sort-label">Sort trains by:</span>
+
+        <a class="sort-link"
+           th:href="@{/search(sourceId=${sourceId},destinationId=${destinationId},date=${date},sortBy='time')}">
+            🕒 Time
+        </a>
+
+        <a class="sort-link"
+           th:href="@{/search(sourceId=${sourceId},destinationId=${destinationId},date=${date},sortBy='fare')}">
+            ₹ Fare
+        </a>
+
+        <a class="sort-link"
+           th:href="@{/search(sourceId=${sourceId},destinationId=${destinationId},date=${date},sortBy='seats')}">
+            💺 Seats
+        </a>
+    </div>
+
+    <div class="empty-message"
+         th:if="${#lists.isEmpty(trains) and error == null}">
+
+        <div class="empty-icon">🚉</div>
+        <h3>No trains found</h3>
+
+        <p>
+            No trains were found for this route and travel date.
+            Try selecting another route or date.
+        </p>
+    </div>
+
+    <section class="results-panel"
+             th:unless="${#lists.isEmpty(trains)}">
+
+        <div class="panel-heading">
+            <h2>Train Details</h2>
+            <span class="panel-badge">Search Results</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Train</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Travel Time</th>
+                    <th>Fare (from)</th>
+                    <th>Seats Left</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="t : ${trains}">
+                    <td th:text="${t.trainNumber + ' - ' + t.trainName}"></td>
+                    <td th:text="${t.departureTime}"></td>
+                    <td th:text="${t.arrivalTime}"></td>
+                    <td th:text="${t.travelTime}"></td>
+                    <td th:text="${t.fare != null ? t.fare : 'N/A'}"></td>
+                    <td th:text="${t.availableSeats}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="booking-section"
+             th:unless="${#lists.isEmpty(trains)}">
+
+        <h2>🎟️ Book Your Ticket</h2>
+
+        <p class="booking-intro">
+            Select a train below and enter the passenger details to submit your booking.
+        </p>
+
+        <div th:each="t : ${trains}" class="train-card">
+
+            <h3 th:text="${t.trainNumber + ' - ' + t.trainName}"></h3>
+
+            <div class="train-details">
+                <div class="detail-box">
+                    <span class="detail-label">🕒 Departure</span>
+                    <span class="detail-value"
+                          th:text="${t.departureTime}"></span>
+                </div>
+
+                <div class="detail-box">
+                    <span class="detail-label">🕒 Arrival</span>
+                    <span class="detail-value"
+                          th:text="${t.arrivalTime}"></span>
+                </div>
+
+                <div class="detail-box">
+                    <span class="detail-label">⏱️ Travel Time</span>
+                    <span class="detail-value"
+                          th:text="${t.travelTime}"></span>
+                </div>
+            </div>
+
+            <p class="seat-info">
+                💺 Available seats:
+                <span th:text="${t.availableSeats}"></span>
+            </p>
+
+            <form class="booking-form"
+                  th:action="@{/book-ticket}"
+                  method="post">
+
+                <input type="hidden"
+                       name="trainId"
+                       th:value="${t.trainId}">
+
+                <input type="hidden"
+                       name="sourceStationId"
+                       th:value="${sourceId}">
+
+                <input type="hidden"
+                       name="destinationStationId"
+                       th:value="${destinationId}">
+
+                <input type="hidden"
+                       name="travelDate"
+                       th:value="${date}">
+
+                <div>
+                    <label>Username</label>
+                    <input type="text"
+                           name="username"
+                           autocomplete="username"
+                           placeholder="Enter username"
+                           required>
+                </div>
+
+                <div>
+                    <label>Passenger Name</label>
+                    <input type="text"
+                           name="passengerName"
+                           maxlength="100"
+                           autocomplete="name"
+                           placeholder="Enter passenger name"
+                           required>
+                </div>
+
+                <div>
+                    <label>Travel Class</label>
+                    <select name="classType" required>
+                        <option value="">Select class</option>
+                        <option value="Sleeper">Sleeper</option>
+                        <option value="AC">AC</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit">Book This Train →</button>
+                </div>
+
+            </form>
+        </div>
+    </section>
+
+    <div class="bottom-navigation">
+        <a class="back-link" th:href="@{/}">
+            ← New Train Search
+        </a>
+
+        <a class="back-link" th:href="@{/booking-history}">
+            🎟️ View Booking History
+        </a>
+    </div>
+
+    <footer class="page-footer">
+        Smart Railway Reservation System · Train Search &amp; Booking
+    </footer>
+
+</main>
+
+<script>
+    const menuButton = document.getElementById("menuButton");
+    const sideMenu = document.getElementById("sideMenu");
+    const menuOverlay = document.getElementById("menuOverlay");
+    const closeMenuButton = document.getElementById("closeMenu");
+
+    function openMenu() {
+        sideMenu.classList.add("open");
+        menuOverlay.classList.add("open");
+        sideMenu.removeAttribute("inert");
+        sideMenu.setAttribute("aria-hidden", "false");
+        document.body.classList.add("menu-open");
+        menuButton.setAttribute("aria-expanded", "true");
+        closeMenuButton.focus();
+    }
+
+    function closeSideMenu() {
+        sideMenu.classList.remove("open");
+        menuOverlay.classList.remove("open");
+        sideMenu.setAttribute("inert", "");
+        sideMenu.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("menu-open");
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.focus();
+    }
+
+    menuButton.addEventListener("click", openMenu);
+    closeMenuButton.addEventListener("click", closeSideMenu);
+    menuOverlay.addEventListener("click", closeSideMenu);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && sideMenu.classList.contains("open")) {
+            closeSideMenu();
+        }
+    });
+</script>
+
+</body>
+</html>

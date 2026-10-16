@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Railway Reservation</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5fb;
+            color: #172b4d;
+        }
+
+        .navbar {
+            min-height: 70px;
+            padding: 12px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: #071d3b;
+            color: white;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #1769d2;
+            font-size: 27px;
+        }
+
+        .brand h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #cbd9ed;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: #e8f0fc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: #164b89;
+            color: white;
+        }
+
+        .hero {
+            min-height: 340px;
+            padding: 48px 8% 100px;
+            color: white;
+            background:
+                linear-gradient(90deg,
+                    rgba(4, 24, 49, .96) 0%,
+                    rgba(4, 24, 49, .77) 45%,
+                    rgba(4, 24, 49, .15) 100%),
+                url("https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=1800&q=85")
+                center 55% / cover no-repeat;
+        }
+
+        .hero-label {
+            font-size: 12px;
+            letter-spacing: 4px;
+            color: #d6e7ff;
+            margin-bottom: 15px;
+        }
+
+        .hero h1 {
+            max-width: 520px;
+            font-size: clamp(34px, 4vw, 52px);
+            line-height: 1.12;
+            margin: 0 0 15px;
+        }
+
+        .hero h1 span {
+            color: #61a8ff;
+        }
+
+        .hero > p {
+            max-width: 560px;
+            line-height: 1.7;
+            color: #e1eafa;
+            font-size: 15px;
+        }
+
+        .search-wrapper {
+            max-width: 1250px;
+            margin: -80px auto 0;
+            padding: 0 25px;
+            position: relative;
+        }
+
+        .search-card {
+            background: white;
+            padding: 25px;
+            border: 1px solid #e4eaf3;
+            border-radius: 16px;
+            box-shadow: 0 12px 35px rgba(20, 45, 80, .13);
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .search-tabs span {
+            padding: 12px 17px;
+            border-radius: 8px;
+            background: #f0f5fc;
+            color: #4d607a;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .search-tabs .selected {
+            background: #1769d2;
+            color: white;
+        }
+
+        .search-card h2 {
+            margin: 0 0 7px;
+            font-size: 22px;
+            color: #102c50;
+        }
+
+        .description {
+            margin: 0 0 23px;
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            align-items: end;
+            gap: 17px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 9px;
+            color: #263b56;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .field select,
+        .field input {
+            width: 100%;
+            height: 47px;
+            padding: 10px 12px;
+            border: 1px solid #d6deea;
+            border-radius: 8px;
+            background: #fff;
+            color: #263b56;
+            font-size: 14px;
+        }
+
+        .field select:focus,
+        .field input:focus {
+            outline: none;
+            border-color: #2879dd;
+            box-shadow: 0 0 0 3px rgba(40, 121, 221, .12);
+        }
+
+        .search-button {
+            height: 47px;
+            padding: 0 22px;
+            border: none;
+            border-radius: 8px;
+            background: #0755bd;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .2s, transform .2s;
+        }
+
+        .search-button:hover {
+            background: #06469b;
+            transform: translateY(-1px);
+        }
+
+        .popular {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            margin-top: 23px;
+            font-size: 13px;
+        }
+
+        .popular strong {
+            margin-right: 5px;
+        }
+
+        .popular span {
+            padding: 9px 14px;
+            background: #eef4fc;
+            border-radius: 20px;
+            color: #385474;
+        }
+
+        .features {
+            max-width: 1250px;
+            margin: 35px auto;
+            padding: 0 25px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            padding: 22px;
+            background: white;
+            border: 1px solid #e5eaf2;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(20, 45, 80, .04);
+        }
+
+        .feature-icon {
+            font-size: 26px;
+        }
+
+        .feature-card h3 {
+            margin: 12px 0 8px;
+            font-size: 17px;
+            color: #15365e;
+        }
+
+        .feature-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #718096;
+            line-height: 1.7;
+        }
+
+        .footer {
+            margin-top: 35px;
+            padding: 23px;
+            text-align: center;
+            background: #071d3b;
+            color: #d4e0f1;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 850px) {
+            .navbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .nav-links {
+                width: 100%;
+            }
+
+            .nav-links a {
+                padding: 10px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .search-button {
+                width: 100%;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .navbar {
+                padding: 14px 18px;
+            }
+
+            .brand h2 {
+                font-size: 17px;
+            }
+
+            .nav-links {
+                gap: 3px;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .hero {
+                min-height: 310px;
+                padding: 38px 22px 100px;
+            }
+
+            .hero h1 {
+                font-size: 35px;
+            }
+
+            .search-wrapper {
+                padding: 0 14px;
+            }
+
+            .search-card {
+                padding: 19px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .search-tabs span {
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .popular {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="navbar">
+    <div class="brand">
+        <div class="brand-icon">🚆</div>
+        <div>
+            <h2>Smart Railway Reservation</h2>
+            <p>Plan Your Journey • Explore Trains • Book with Ease</p>
+        </div>
+    </div>
+
+    <nav class="nav-links">
+        <a th:href="@{/}" class="active">⌂ Home</a>
+        <a th:href="@{/}">⌕ Find Trains</a>
+        <a th:href="@{/booking-history}">▤ My Bookings</a>
+        <a th:href="@{/routes}">◎ Routes</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="hero-label">← INDIAN RAILWAYS</div>
+    <h1>Your Journey<br><span>Starts Here!</span></h1>
+    <p>Find the right train, choose your travel date and plan your journey with ease.</p>
+</section>
+
+<main>
+    <div class="search-wrapper">
+        <section class="search-card">
+
+            <div class="search-tabs">
+                <span class="selected">⌕ Find Your Train</span>
+                <span>◷ Easy Booking</span>
+                <span>☆ Smart Routes</span>
+            </div>
+
+            <h2>Plan Your Journey</h2>
+            <p class="description">
+                Choose your stations and travel date to find available trains.
+            </p>
+
+            <form class="search-form" th:action="@{/search}" method="get">
+
+                <div class="field">
+                    <label for="sourceId">🚉 From</label>
+                    <select id="sourceId" name="sourceId" required>
+                        <option value="">Select source station</option>
+                        <option th:each="s : ${stations}"
+                                th:value="${s.stationId}"
+                                th:text="${s.stationName + ' (' + s.stationCode + ')'}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="destinationId">🚉 To</label>
+                    <select id="destinationId" name="destinationId" required>
+                        <option value="">Select destination station</option>
+                        <option th:each="s : ${stations}"
+                                th:value="${s.stationId}"
+                                th:text="${s.stationName + ' (' + s.stationCode + ')'}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="date">📅 Travel Date</label>
+                    <input type="date"
+                           id="date"
+                           name="date"
+                           th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                           required>
+                </div>
+
+                <button type="submit" class="search-button">
+                    🔍 Search Trains →
+                </button>
+
+            </form>
+
+            <div class="popular">
+                <strong>Popular Routes:</strong>
+                <span>Raipur → New Delhi</span>
+                <span>Raipur → Bilaspur</span>
+                <span>Bilaspur → Varanasi</span>
+            </div>
+
+        </section>
+    </div>
+
+    <section class="features">
+        <article class="feature-card">
+            <div class="feature-icon">🚆</div>
+            <h3>Find Available Trains</h3>
+            <p>Explore trains, compare timings and check available seats for your journey.</p>
+        </article>
+
+        <article class="feature-card">
+            <div class="feature-icon">🎟️</div>
+            <h3>Easy Ticket Booking</h3>
+            <p>Book tickets and manage your reservations through the booking system.</p>
+        </article>
+
+        <article class="feature-card">
+            <div class="feature-icon">🗺️</div>
+            <h3>Smart Route Finder</h3>
+            <p>Explore railway routes and find connections between stations.</p>
+        </article>
+    </section>
+</main>
+
+<footer class="footer">
+    <strong>Smart Railway Reservation</strong><br>
+    Smarter Routes. Simpler Journeys.<br>
+    © 2026 Smart Railway System
+</footer>
+
+</body>
+</html>
