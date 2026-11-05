@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Booking Result | Smart Railway</title>
 
     <style>
@@ -22,6 +24,7 @@
             overflow: hidden;
         }
 
+        /* Menu Button */
         .menu-button {
             position: fixed;
             top: 18px;
@@ -41,6 +44,7 @@
             background: #24558b;
         }
 
+        /* Menu Overlay */
         .menu-overlay {
             position: fixed;
             inset: 0;
@@ -56,6 +60,7 @@
             visibility: visible;
         }
 
+        /* Sidebar */
         .side-menu {
             position: fixed;
             top: 0;
@@ -64,7 +69,9 @@
             width: 285px;
             max-width: 85vw;
             height: 100vh;
+            height: 100dvh;
             padding: 22px 16px;
+            overflow-y: auto;
             background: linear-gradient(160deg, #17365d, #104a78);
             color: white;
             transform: translateX(-100%);
@@ -90,11 +97,18 @@
         }
 
         .close-button {
+            width: 40px;
+            height: 40px;
             border: none;
+            border-radius: 7px;
             background: transparent;
             color: white;
             font-size: 30px;
             cursor: pointer;
+        }
+
+        .close-button:hover {
+            background: #ffffff20;
         }
 
         .menu-caption {
@@ -105,9 +119,15 @@
             letter-spacing: 1.5px;
         }
 
+        .menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
         .menu-links a {
             display: block;
-            margin: 5px 0;
+            margin: 0;
             padding: 13px 12px;
             border-radius: 8px;
             color: white;
@@ -124,6 +144,7 @@
             width: 32px;
         }
 
+        /* Main Page */
         .page {
             min-height: 100vh;
             display: flex;
@@ -132,6 +153,7 @@
             padding: 90px 20px 35px;
         }
 
+        /* Result Card */
         .result-card {
             width: 100%;
             max-width: 560px;
@@ -181,6 +203,7 @@
             line-height: 1.7;
         }
 
+        /* Transaction Message */
         .message {
             padding: 18px;
             margin: 20px 0 25px;
@@ -193,6 +216,7 @@
             white-space: pre-line;
         }
 
+        /* Action Buttons */
         .button-group {
             display: flex;
             justify-content: center;
@@ -228,6 +252,7 @@
             color: white;
         }
 
+        /* Booking History Link */
         .history-link {
             display: inline-block;
             margin-top: 22px;
@@ -241,6 +266,7 @@
             text-decoration: underline;
         }
 
+        /* Footer */
         .footer {
             margin-top: 28px;
             padding-top: 18px;
@@ -249,23 +275,27 @@
             font-size: 12px;
         }
 
+        /* Keyboard Accessibility */
         button:focus-visible,
         a:focus-visible {
             outline: 3px solid #60a5fa;
             outline-offset: 3px;
         }
 
+        /* Animation */
         @keyframes appear {
             from {
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
+        /* Mobile Responsive */
         @media (max-width: 480px) {
             .result-card {
                 padding: 28px 18px;
@@ -284,6 +314,7 @@
             }
         }
 
+        /* Reduced Motion Accessibility */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -297,16 +328,20 @@
 
 <body>
 
+    <!-- Menu Button -->
     <button type="button"
             class="menu-button"
             id="menuButton"
+            aria-label="Open navigation menu"
             aria-controls="sideMenu"
             aria-expanded="false">
         ☰ Menu
     </button>
 
+    <!-- Menu Overlay -->
     <div class="menu-overlay" id="menuOverlay"></div>
 
+    <!-- Sidebar Navigation -->
     <aside class="side-menu"
            id="sideMenu"
            aria-label="Main navigation"
@@ -314,7 +349,10 @@
            inert>
 
         <div class="menu-header">
-            <div class="menu-brand">🚆 Smart Railway</div>
+
+            <div class="menu-brand">
+                🚆 Smart Railway
+            </div>
 
             <button type="button"
                     class="close-button"
@@ -322,11 +360,13 @@
                     aria-label="Close menu">
                 &times;
             </button>
+
         </div>
 
         <p class="menu-caption">Navigation</p>
 
         <nav class="menu-links">
+
             <a th:href="@{/}">
                 <span class="menu-icon">⌂</span> Home
             </a>
@@ -342,13 +382,19 @@
             <a th:href="@{/routes}">
                 <span class="menu-icon">🗺️</span> Route Finder
             </a>
+
         </nav>
+
     </aside>
 
+    <!-- Main Content -->
     <main class="page">
+
         <section class="result-card">
 
-            <div class="top-label">Smart Railway System</div>
+            <div class="top-label">
+                Smart Railway System
+            </div>
 
             <div class="result-icon" aria-hidden="true">
                 🚆
@@ -357,16 +403,20 @@
             <h1>Transaction Result</h1>
 
             <p class="subtitle">
-                Your booking or cancellation request has been processed.
+                Here is the result of your railway reservation request.
             </p>
 
+            <!-- Booking / Cancellation Result -->
             <div class="message"
                  role="status"
+                 aria-live="polite"
                  th:text="${message}">
                 Your booking or cancellation result will appear here.
             </div>
 
+            <!-- Action Buttons -->
             <div class="button-group">
+
                 <a th:href="@{/}" class="action-button">
                     🏠 Back to Home
                 </a>
@@ -374,26 +424,42 @@
                 <a th:href="@{/}" class="action-button secondary-button">
                     🔍 Search Trains
                 </a>
+
             </div>
 
-            <a th:href="@{/booking-history}" class="history-link">
+            <!-- Booking History Link -->
+            <a th:if="${username != null}"
+               th:href="@{/booking-history(username=${username})}"
+               class="history-link">
                 View Booking History →
             </a>
 
+            <!-- Fallback when username is unavailable -->
+            <a th:unless="${username != null}"
+               th:href="@{/booking-history}"
+               class="history-link">
+                View Booking History →
+            </a>
+
+            <!-- Footer -->
             <div class="footer">
                 Smart Railway Reservation &amp; Route Management System
             </div>
 
         </section>
+
     </main>
 
+    <!-- Sidebar JavaScript -->
     <script>
+
         const menuButton = document.getElementById("menuButton");
         const sideMenu = document.getElementById("sideMenu");
         const menuOverlay = document.getElementById("menuOverlay");
         const closeMenuButton = document.getElementById("closeMenu");
 
         function openMenu() {
+
             sideMenu.classList.add("open");
             menuOverlay.classList.add("open");
 
@@ -401,12 +467,14 @@
             sideMenu.setAttribute("aria-hidden", "false");
 
             document.body.classList.add("menu-open");
+
             menuButton.setAttribute("aria-expanded", "true");
 
             closeMenuButton.focus();
         }
 
         function closeSideMenu() {
+
             sideMenu.classList.remove("open");
             menuOverlay.classList.remove("open");
 
@@ -414,23 +482,29 @@
             sideMenu.setAttribute("aria-hidden", "true");
 
             document.body.classList.remove("menu-open");
+
             menuButton.setAttribute("aria-expanded", "false");
 
             menuButton.focus();
         }
 
         menuButton.addEventListener("click", openMenu);
+
         closeMenuButton.addEventListener("click", closeSideMenu);
+
         menuOverlay.addEventListener("click", closeSideMenu);
 
         document.addEventListener("keydown", function (event) {
+
             if (
                 event.key === "Escape" &&
                 sideMenu.classList.contains("open")
             ) {
                 closeSideMenu();
             }
+
         });
+
     </script>
 
 </body>

@@ -7,7 +7,8 @@ public class Station {
     private final String stationName;
     private final String city;
 
-    public Station(int stationId, String stationCode, String stationName, String city) {
+    public Station(int stationId, String stationCode,
+                   String stationName, String city) {
         this.stationId = stationId;
         this.stationCode = stationCode;
         this.stationName = stationName;

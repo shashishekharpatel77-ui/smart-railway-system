@@ -372,6 +372,11 @@
             background: #fef3c7;
         }
 
+        .expired {
+            color: #475569;
+            background: #e2e8f0;
+        }
+
         .cancel-button {
             min-height: 36px;
             padding: 9px 12px;
@@ -517,6 +522,7 @@
         aria-label="Open navigation menu"
         aria-controls="sideMenu"
         aria-expanded="false">
+
     <span aria-hidden="true">☰</span>
     <span>Menu</span>
 </button>
@@ -530,6 +536,7 @@
        inert>
 
     <div class="menu-header">
+
         <div class="menu-brand">🚆 Smart Railway</div>
 
         <button type="button"
@@ -538,11 +545,13 @@
                 aria-label="Close navigation menu">
             &times;
         </button>
+
     </div>
 
     <p class="menu-caption">Navigation</p>
 
     <nav class="menu-links">
+
         <a th:href="@{/}">
             <span class="menu-icon" aria-hidden="true">⌂</span>
             <span>Home</span>
@@ -562,29 +571,40 @@
             <span class="menu-icon" aria-hidden="true">🗺️</span>
             <span>Route Finder (BFS &amp; Dijkstra)</span>
         </a>
+
     </nav>
 </aside>
 
 <main class="container">
 
     <header class="page-header">
-        <span class="header-label">SMART RAILWAY RESERVATION SYSTEM</span>
+
+        <span class="header-label">
+            SMART RAILWAY RESERVATION SYSTEM
+        </span>
+
         <h1>🎟️ Booking History</h1>
+
         <p>
             View your booking details, check ticket status and manage
             your confirmed reservations in one place.
         </p>
+
     </header>
 
+    <!-- Search bookings using username -->
+
     <section class="panel">
+
         <h2 class="search-title">Find Your Bookings</h2>
 
         <p class="search-description">
-            Enter the username used while booking to view the associated tickets.
+            Enter the username used while booking to view your tickets
+            and waiting-list entries.
         </p>
 
         <form class="search-form"
-              action="/booking-history"
+              th:action="@{/booking-history}"
               method="get">
 
             <input
@@ -599,13 +619,17 @@
             <button type="submit" class="search-button">
                 View Bookings →
             </button>
+
         </form>
 
         <p class="error"
            th:if="${error}"
            th:text="${error}">
         </p>
+
     </section>
+
+    <!-- Confirmed and cancelled booking history -->
 
     <section class="panel" th:if="${username != null}">
 
@@ -618,16 +642,20 @@
         </p>
 
         <div th:if="${#lists.isEmpty(bookings)}" class="empty">
+
             <div class="empty-icon">🎫</div>
-            <h3>No Bookings Found</h3>
-            <p>No bookings were found for this username.</p>
-            <p>Please check your username and try again.</p>
+
+            <h3>No Confirmed Booking Records</h3>
+
+            <p>No booking records were found for this username.</p>
+
         </div>
 
         <div class="table-wrapper"
              th:if="${not #lists.isEmpty(bookings)}">
 
             <table>
+
                 <thead>
                 <tr>
                     <th>Booking ID</th>
@@ -645,21 +673,30 @@
                 </thead>
 
                 <tbody>
+
                 <tr th:each="booking : ${bookings}">
 
                     <td th:text="${booking.bookingId}"></td>
+
                     <td th:text="${booking.passengerName}"></td>
+
                     <td th:text="${booking.trainNumber}"></td>
+
                     <td th:text="${booking.trainName}"></td>
+
                     <td th:text="${booking.sourceStationName}"></td>
+
                     <td th:text="${booking.destinationStationName}"></td>
+
                     <td th:text="${booking.travelDate}"></td>
+
                     <td th:text="${booking.classType}"></td>
 
                     <td th:text="${booking.seatId != null
                                   ? booking.seatId : '—'}"></td>
 
                     <td>
+
                         <span
                             class="status"
                             th:text="${booking.bookingStatus}"
@@ -668,13 +705,17 @@
                                 : (booking.bookingStatus == 'CANCELLED'
                                     ? ' cancelled' : ' waiting')}">
                         </span>
+
                     </td>
 
                     <td>
+
+                        <!-- Cancel only confirmed tickets -->
+
                         <form
                             class="action-form"
                             th:if="${booking.bookingStatus == 'CONFIRMED'}"
-                            action="/cancel-ticket"
+                            th:action="@{/cancel-ticket}"
                             method="post"
                             onsubmit="return confirm('Are you sure you want to cancel this ticket?');">
 
@@ -683,9 +724,15 @@
                                 name="bookingId"
                                 th:value="${booking.bookingId}">
 
+                            <input
+                                type="hidden"
+                                name="username"
+                                th:value="${username}">
+
                             <button type="submit" class="cancel-button">
                                 Cancel Ticket
                             </button>
+
                         </form>
 
                         <span
@@ -699,15 +746,155 @@
                                     and booking.bookingStatus != 'CANCELLED'}">
                             —
                         </span>
+
                     </td>
 
                 </tr>
+
                 </tbody>
+
             </table>
+
         </div>
+
+    </section>
+
+    <!-- Waiting-list history -->
+
+    <section class="panel" th:if="${username != null}">
+
+        <h2 class="history-heading">Waiting-List History</h2>
+
+        <p class="history-subtitle">
+            View your waiting-list entries, queue positions and current status.
+        </p>
+
+        <div class="empty"
+             th:if="${#lists.isEmpty(waitingList)}">
+
+            <div class="empty-icon">📋</div>
+
+            <h3>No Waiting-List Entries</h3>
+
+            <p>You do not have any waiting-list bookings.</p>
+
+        </div>
+
+        <div class="table-wrapper"
+             th:if="${not #lists.isEmpty(waitingList)}">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Waiting ID</th>
+                    <th>Passenger</th>
+                    <th>Train Number</th>
+                    <th>Train Name</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Travel Date</th>
+                    <th>Class</th>
+                    <th>Waiting Number</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="waiting : ${waitingList}">
+
+                    <td th:text="${waiting.waitingId}"></td>
+
+                    <td th:text="${waiting.passengerName}"></td>
+
+                    <td th:text="${waiting.trainNumber}"></td>
+
+                    <td th:text="${waiting.trainName}"></td>
+
+                    <td th:text="${waiting.sourceStationName}"></td>
+
+                    <td th:text="${waiting.destinationStationName}"></td>
+
+                    <td th:text="${waiting.travelDate}"></td>
+
+                    <td th:text="${waiting.classType}"></td>
+
+                    <td th:text="${waiting.waitingLabel}"></td>
+
+                    <td>
+
+                        <span
+                            class="status"
+                            th:text="${waiting.status}"
+                            th:classappend="${waiting.status == 'WAITING'
+                                ? ' waiting'
+                                : (waiting.status == 'CONFIRMED'
+                                    ? ' confirmed'
+                                    : (waiting.status == 'CANCELLED'
+                                        ? ' cancelled' : ' expired'))}">
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <!-- Only active waiting-list entries can be cancelled -->
+
+                        <form
+                            class="action-form"
+                            th:if="${waiting.status == 'WAITING'}"
+                            th:action="@{/cancel-waiting}"
+                            method="post"
+                            onsubmit="return confirm('Are you sure you want to cancel this waiting-list entry?');">
+
+                            <input
+                                type="hidden"
+                                name="waitingId"
+                                th:value="${waiting.waitingId}">
+
+                            <input
+                                type="hidden"
+                                name="username"
+                                th:value="${username}">
+
+                            <button type="submit" class="cancel-button">
+                                Cancel Waiting
+                            </button>
+
+                        </form>
+
+                        <span
+                            class="already-cancelled"
+                            th:if="${waiting.status == 'CANCELLED'}">
+                            Cancelled
+                        </span>
+
+                        <span
+                            th:if="${waiting.status == 'CONFIRMED'}">
+                            Promoted
+                        </span>
+
+                        <span
+                            th:if="${waiting.status == 'EXPIRED'}">
+                            Expired
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </section>
 
     <div class="bottom-navigation">
+
         <a class="back-link" th:href="@{/}">
             ← Back to Home
         </a>
@@ -715,6 +902,7 @@
         <a class="back-link" th:href="@{/routes}">
             🗺️ Explore Train Routes
         </a>
+
     </div>
 
     <footer class="page-footer">
@@ -724,40 +912,56 @@
 </main>
 
 <script>
+
     const menuButton = document.getElementById("menuButton");
     const sideMenu = document.getElementById("sideMenu");
     const menuOverlay = document.getElementById("menuOverlay");
     const closeMenuButton = document.getElementById("closeMenu");
 
     function openMenu() {
+
         sideMenu.classList.add("open");
         menuOverlay.classList.add("open");
+
         sideMenu.removeAttribute("inert");
         sideMenu.setAttribute("aria-hidden", "false");
+
         document.body.classList.add("menu-open");
+
         menuButton.setAttribute("aria-expanded", "true");
+
         closeMenuButton.focus();
     }
 
     function closeSideMenu() {
+
         sideMenu.classList.remove("open");
         menuOverlay.classList.remove("open");
+
         sideMenu.setAttribute("inert", "");
         sideMenu.setAttribute("aria-hidden", "true");
+
         document.body.classList.remove("menu-open");
+
         menuButton.setAttribute("aria-expanded", "false");
+
         menuButton.focus();
     }
 
     menuButton.addEventListener("click", openMenu);
+
     closeMenuButton.addEventListener("click", closeSideMenu);
+
     menuOverlay.addEventListener("click", closeSideMenu);
 
     document.addEventListener("keydown", function (event) {
+
         if (event.key === "Escape" && sideMenu.classList.contains("open")) {
             closeSideMenu();
         }
+
     });
+
 </script>
 
 </body>

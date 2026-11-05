@@ -10,22 +10,42 @@ public class TrainResult {
     private final String trainNumber;
     private final String trainName;
     private final String trainType;
+    private final String direction;
     private final LocalTime departureTime;
     private final LocalTime arrivalTime;
     private final BigDecimal fare;
-    private final int availableSeats;
 
-    public TrainResult(int trainId, String trainNumber, String trainName, String trainType,
-                       LocalTime departureTime, LocalTime arrivalTime,
-                       BigDecimal fare, int availableSeats) {
+    private final int sleeperSeats;
+    private final int acSeats;
+    private final int sleeperWaiting;
+    private final int acWaiting;
+
+    public TrainResult(
+            int trainId,
+            String trainNumber,
+            String trainName,
+            String trainType,
+            String direction,
+            LocalTime departureTime,
+            LocalTime arrivalTime,
+            BigDecimal fare,
+            int sleeperSeats,
+            int acSeats,
+            int sleeperWaiting,
+            int acWaiting) {
+
         this.trainId = trainId;
         this.trainNumber = trainNumber;
         this.trainName = trainName;
         this.trainType = trainType;
+        this.direction = direction;
         this.departureTime = departureTime;
         this.arrivalTime = arrivalTime;
         this.fare = fare;
-        this.availableSeats = availableSeats;
+        this.sleeperSeats = sleeperSeats;
+        this.acSeats = acSeats;
+        this.sleeperWaiting = sleeperWaiting;
+        this.acWaiting = acWaiting;
     }
 
     public int getTrainId() {
@@ -44,6 +64,10 @@ public class TrainResult {
         return trainType;
     }
 
+    public String getDirection() {
+        return direction;
+    }
+
     public LocalTime getDepartureTime() {
         return departureTime;
     }
@@ -57,16 +81,52 @@ public class TrainResult {
     }
 
     public int getAvailableSeats() {
-        return availableSeats;
+        return sleeperSeats + acSeats;
+    }
+
+    public int getSleeperSeats() {
+        return sleeperSeats;
+    }
+
+    public int getAcSeats() {
+        return acSeats;
+    }
+
+    public int getSleeperWaiting() {
+        return sleeperWaiting;
+    }
+
+    public int getAcWaiting() {
+        return acWaiting;
+    }
+
+    public String getSleeperStatus() {
+        return statusText(sleeperSeats, sleeperWaiting);
+    }
+
+    public String getAcStatus() {
+        return statusText(acSeats, acWaiting);
+    }
+
+    private static String statusText(int seats, int waiting) {
+        if (seats > 0) {
+            return seats + " available";
+        }
+
+        return waiting > 0
+                ? "Full - WL " + waiting
+                : "Full - waiting list open";
     }
 
     public String getTravelTime() {
-        long m = Duration.between(departureTime, arrivalTime).toMinutes();
+        long minutes = Duration.between(
+                departureTime, arrivalTime
+        ).toMinutes();
 
-        if (m < 0) {
-            m += 24 * 60;
+        if (minutes < 0) {
+            minutes += 24 * 60;
         }
 
-        return (m / 60) + "h " + (m % 60) + "m";
+        return (minutes / 60) + "h " + (minutes % 60) + "m";
     }
 }

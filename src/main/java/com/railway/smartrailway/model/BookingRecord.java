@@ -15,11 +15,12 @@ public class BookingRecord {
     private String bookingStatus;
     private String classType;
 
-    // New fields for displaying names
+    // Fields used to display related booking information
     private String trainName;
     private String trainNumber;
     private String sourceStationName;
     private String destinationStationName;
+    private String seatNumber;
 
     public int getBookingId() {
         return bookingId;
@@ -131,5 +132,13 @@ public class BookingRecord {
 
     public void setDestinationStationName(String destinationStationName) {
         this.destinationStationName = destinationStationName;
+    }
+
+    public String getSeatNumber() {
+        return seatNumber;
+    }
+
+    public void setSeatNumber(String seatNumber) {
+        this.seatNumber = seatNumber;
     }
 }

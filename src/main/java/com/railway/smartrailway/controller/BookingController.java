@@ -18,7 +18,7 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
-    // Book a ticket
+    // Book a ticket or add the passenger to the waiting list.
     @PostMapping("/book-ticket")
     public String bookTicket(
             @RequestParam String username,
@@ -43,18 +43,53 @@ public class BookingController {
         );
 
         model.addAttribute("message", message);
+        model.addAttribute(
+                "username",
+                BookingService.normalizeUsername(username)
+        );
+
         return "booking-result";
     }
 
-    // Cancel a confirmed ticket
+    // Cancel a confirmed ticket belonging to the given username.
     @PostMapping("/cancel-ticket")
     public String cancelTicket(
             @RequestParam int bookingId,
+            @RequestParam String username,
             Model model) {
 
-        String message = bookingService.cancelTicket(bookingId);
+        String message = bookingService.cancelTicket(
+                bookingId,
+                username
+        );
 
         model.addAttribute("message", message);
+        model.addAttribute(
+                "username",
+                BookingService.normalizeUsername(username)
+        );
+
+        return "booking-result";
+    }
+
+    // Cancel a waiting-list entry belonging to the given username.
+    @PostMapping("/cancel-waiting")
+    public String cancelWaiting(
+            @RequestParam int waitingId,
+            @RequestParam String username,
+            Model model) {
+
+        String message = bookingService.cancelWaiting(
+                waitingId,
+                username
+        );
+
+        model.addAttribute("message", message);
+        model.addAttribute(
+                "username",
+                BookingService.normalizeUsername(username)
+        );
+
         return "booking-result";
     }
 }

@@ -18,6 +18,7 @@
     --shadow: 0 5px 20px rgba(29, 48, 91, 0.08);
 }
 
+/* Global Reset */
 * {
     margin: 0;
     padding: 0;
@@ -73,6 +74,7 @@ p {
     margin-bottom: 12px;
 }
 
+/* Container and Cards */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -96,6 +98,7 @@ p {
     color: var(--primary-dark);
 }
 
+/* Header and Navbar */
 header,
 .navbar {
     background: var(--primary-dark);
@@ -136,6 +139,7 @@ header,
     font-weight: 600;
 }
 
+/* Hero Section */
 .hero {
     padding: 60px 24px;
     background: linear-gradient(135deg, #192b60, #3556a5);
@@ -156,6 +160,7 @@ header,
     font-size: 17px;
 }
 
+/* Sidebar */
 .sidebar {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -179,6 +184,7 @@ header,
     color: var(--primary);
 }
 
+/* Forms */
 label {
     display: block;
     margin-bottom: 7px;
@@ -218,6 +224,7 @@ textarea {
     resize: vertical;
 }
 
+/* Buttons */
 button,
 .btn {
     display: inline-flex;
@@ -296,6 +303,7 @@ button:hover,
     width: 100%;
 }
 
+/* Form Layout */
 .form-group {
     margin-bottom: 16px;
 }
@@ -322,6 +330,7 @@ button:hover,
     min-height: 46px;
 }
 
+/* Tables */
 .table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -364,6 +373,7 @@ tbody tr:last-child td {
     border-bottom: none;
 }
 
+/* Booking Status */
 .status {
     display: inline-block;
     padding: 5px 11px;
@@ -389,6 +399,7 @@ tbody tr:last-child td {
     color: var(--warning);
 }
 
+/* Train and Result Cards */
 .train-card,
 .result-card {
     background: var(--surface);
@@ -428,6 +439,7 @@ tbody tr:last-child td {
     color: var(--primary-dark);
 }
 
+/* Feature Cards */
 .feature-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -453,6 +465,7 @@ tbody tr:last-child td {
     gap: 20px;
 }
 
+/* Routes */
 .route-box {
     padding: 22px;
     margin-bottom: 20px;
@@ -475,6 +488,7 @@ tbody tr:last-child td {
     overflow-wrap: anywhere;
 }
 
+/* Alerts */
 .alert {
     padding: 14px 18px;
     margin-bottom: 20px;
@@ -503,6 +517,7 @@ tbody tr:last-child td {
     border-color: #f5e1a8;
 }
 
+/* Empty State */
 .empty-state {
     padding: 36px 20px;
     text-align: center;
@@ -519,6 +534,7 @@ tbody tr:last-child td {
     color: var(--muted);
 }
 
+/* Utility Classes */
 .text-muted {
     color: var(--muted);
 }
@@ -564,6 +580,7 @@ tbody tr:last-child td {
     gap: 16px;
 }
 
+/* Footer */
 footer {
     margin-top: 48px;
     padding: 24px;
@@ -580,6 +597,7 @@ footer a {
     color: #ffffff;
 }
 
+/* Tablet and Mobile Responsive */
 @media (max-width: 768px) {
     .container {
         padding: 18px;
@@ -627,6 +645,7 @@ footer a {
     }
 }
 
+/* Small Mobile Screens */
 @media (max-width: 480px) {
     body {
         font-size: 14px;
@@ -675,6 +694,7 @@ footer a {
     }
 }
 
+/* Accessibility: Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

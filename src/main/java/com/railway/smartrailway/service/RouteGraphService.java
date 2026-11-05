@@ -15,10 +15,15 @@ public class RouteGraphService {
         this.jdbc = jdbc;
     }
 
+    // Fetch all stations from the database.
     private Map<Integer, String> getStations() {
+
         Map<Integer, String> stations = new HashMap<>();
 
-        String sql = "SELECT station_id, station_name FROM stations";
+        String sql = """
+                SELECT station_id, station_name
+                FROM stations
+                """;
 
         jdbc.query(sql, rs -> {
             stations.put(
@@ -30,7 +35,9 @@ public class RouteGraphService {
         return stations;
     }
 
+    // Build a directed graph using consecutive stops of active trains.
     private Map<Integer, List<Edge>> buildGraph() {
+
         Map<Integer, List<Edge>> graph = new HashMap<>();
         Map<Integer, String> stations = getStations();
 
@@ -38,44 +45,64 @@ public class RouteGraphService {
             graph.put(stationId, new ArrayList<>());
         }
 
-        String sql =
-                "SELECT r1.station_id AS source_id, " +
-                "r2.station_id AS destination_id, " +
-                "CASE " +
-                " WHEN r1.departure_time IS NULL " +
-                "   OR r2.arrival_time IS NULL THEN 1 " +
-                " WHEN TIME_TO_SEC(TIMEDIFF(" +
-                "      r2.arrival_time, r1.departure_time)) <= 0 " +
-                "   THEN TIME_TO_SEC(TIMEDIFF(" +
-                "      r2.arrival_time, r1.departure_time)) / 60 + 1440 " +
-                " ELSE TIME_TO_SEC(TIMEDIFF(" +
-                "      r2.arrival_time, r1.departure_time)) / 60 " +
-                "END AS travel_minutes " +
-                "FROM train_routes r1 " +
-                "JOIN train_routes r2 " +
-                " ON r1.train_id = r2.train_id " +
-                "AND r2.stop_number = r1.stop_number + 1";
+        String sql = """
+                SELECT
+                    r1.station_id AS source_id,
+                    r2.station_id AS destination_id,
+                    CASE
+                        WHEN r1.departure_time IS NULL
+                             OR r2.arrival_time IS NULL
+                        THEN 1
+                        ELSE GREATEST(
+                            1,
+                            MOD(
+                                TIME_TO_SEC(
+                                    TIMEDIFF(
+                                        r2.arrival_time,
+                                        r1.departure_time
+                                    )
+                                ) + 86400,
+                                86400
+                            ) / 60
+                        )
+                    END AS travel_minutes
+                FROM train_routes r1
+                JOIN train_routes r2
+                    ON r1.train_id = r2.train_id
+                   AND r1.direction = r2.direction
+                   AND r2.stop_number = r1.stop_number + 1
+                JOIN trains t
+                    ON t.train_id = r1.train_id
+                WHERE t.status = 'ACTIVE'
+                """;
 
         jdbc.query(sql, rs -> {
+
             int source = rs.getInt("source_id");
             int destination = rs.getInt("destination_id");
+
             int minutes = Math.max(
                     1,
                     (int) Math.round(rs.getDouble("travel_minutes"))
             );
 
-            graph.computeIfAbsent(source, k -> new ArrayList<>())
-                    .add(new Edge(destination, minutes));
+            graph.computeIfAbsent(
+                    source,
+                    key -> new ArrayList<>()
+            ).add(new Edge(destination, minutes));
 
-            graph.computeIfAbsent(destination, k -> new ArrayList<>());
+            graph.computeIfAbsent(
+                    destination,
+                    key -> new ArrayList<>()
+            );
         });
 
         return graph;
     }
 
-    // BFS: finds the route with the fewest station-to-station edges.
+    // BFS finds a route with the minimum number of station-to-station edges.
     public List<String> findRouteBFS(int source, int destination) {
-        Map<Integer, List<Edge>> graph = buildGraph();
+
         Map<Integer, String> stations = getStations();
 
         if (source == destination
@@ -83,6 +110,8 @@ public class RouteGraphService {
                 || !stations.containsKey(destination)) {
             return Collections.emptyList();
         }
+
+        Map<Integer, List<Edge>> graph = buildGraph();
 
         Queue<Integer> queue = new LinkedList<>();
         Set<Integer> visited = new HashSet<>();
@@ -92,6 +121,7 @@ public class RouteGraphService {
         visited.add(source);
 
         while (!queue.isEmpty()) {
+
             int current = queue.poll();
 
             if (current == destination) {
@@ -100,7 +130,9 @@ public class RouteGraphService {
 
             for (Edge edge :
                     graph.getOrDefault(current, Collections.emptyList())) {
+
                 if (visited.add(edge.destination)) {
+
                     parent.put(edge.destination, current);
                     queue.offer(edge.destination);
                 }
@@ -110,9 +142,9 @@ public class RouteGraphService {
         return buildPath(source, destination, parent, visited, stations);
     }
 
-    // Dijkstra: finds the route with the lowest estimated travel time.
+    // Dijkstra finds the route with the lowest estimated travel time.
     public List<String> findRouteDijkstra(int source, int destination) {
-        Map<Integer, List<Edge>> graph = buildGraph();
+
         Map<Integer, String> stations = getStations();
 
         if (source == destination
@@ -120,6 +152,8 @@ public class RouteGraphService {
                 || !stations.containsKey(destination)) {
             return Collections.emptyList();
         }
+
+        Map<Integer, List<Edge>> graph = buildGraph();
 
         Map<Integer, Long> distance = new HashMap<>();
         Map<Integer, Integer> parent = new HashMap<>();
@@ -137,8 +171,10 @@ public class RouteGraphService {
         queue.offer(new Node(source, 0L));
 
         while (!queue.isEmpty()) {
+
             Node current = queue.poll();
 
+            // Ignore outdated queue entries.
             if (current.cost != distance.get(current.station)) {
                 continue;
             }
@@ -153,10 +189,15 @@ public class RouteGraphService {
                 long newCost = current.cost + edge.weight;
 
                 if (newCost < distance.getOrDefault(
-                        edge.destination, Long.MAX_VALUE)) {
+                        edge.destination,
+                        Long.MAX_VALUE)) {
+
                     distance.put(edge.destination, newCost);
                     parent.put(edge.destination, current.station);
-                    queue.offer(new Node(edge.destination, newCost));
+
+                    queue.offer(
+                            new Node(edge.destination, newCost)
+                    );
                 }
             }
         }
@@ -165,13 +206,13 @@ public class RouteGraphService {
             return Collections.emptyList();
         }
 
-        Set<Integer> visited = new HashSet<>();
+        Set<Integer> visited = new HashSet<>(parent.keySet());
         visited.add(source);
-        visited.addAll(parent.keySet());
 
         return buildPath(source, destination, parent, visited, stations);
     }
 
+    // Reconstruct the final route using parent relationships.
     private List<String> buildPath(
             int source,
             int destination,
@@ -184,9 +225,11 @@ public class RouteGraphService {
         }
 
         LinkedList<String> path = new LinkedList<>();
+
         int current = destination;
 
         while (true) {
+
             String stationName = stations.get(current);
 
             if (stationName == null) {
@@ -211,7 +254,9 @@ public class RouteGraphService {
         return path;
     }
 
+    // Represents a directed connection between two stations.
     private static class Edge {
+
         private final int destination;
         private final int weight;
 
@@ -221,7 +266,9 @@ public class RouteGraphService {
         }
     }
 
+    // Represents a station and its accumulated travel time.
     private static class Node {
+
         private final int station;
         private final long cost;
 

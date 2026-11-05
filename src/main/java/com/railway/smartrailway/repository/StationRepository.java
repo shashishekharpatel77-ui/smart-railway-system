@@ -15,6 +15,7 @@ public class StationRepository {
         this.jdbc = jdbc;
     }
 
+    // Fetch all stations from the database.
     public List<Station> findAll() {
 
         String sql = "SELECT station_id, station_code, station_name, city "
